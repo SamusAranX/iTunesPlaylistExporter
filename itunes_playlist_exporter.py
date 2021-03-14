@@ -103,4 +103,4 @@ if __name__ == "__main__":
 	parser.add_argument("-r", "--relative", action="store_true", help="Makes audio file paths relative")
 	parser.add_argument("out", type=str, default="./", help="output folder")
 	args = parser.parse_args()
-	main(args.input, args.out, make_relative=args.relative)
+	main(args.input, os.path.expanduser(args.out), make_relative=args.relative)
