@@ -22,12 +22,14 @@ def join(sep, *args):
 	return sep.join(args)
 
 def main(input_file, out_dir, make_relative=False):
-	# put other playlists to ignore here
+	# this list is entirely arbitrary. add your own here if you want
 	ignored_playlists = [
 		"Library",
 		"Downloaded",
 		"Music",
-		"All Playlists"
+		"All Playlists",
+		"Alfred Playlist",
+		"Albums without Artwork",
 	]
 
 	# plist vars. do not touch
@@ -84,9 +86,14 @@ def main(input_file, out_dir, make_relative=False):
 					f.write(f"#EXTGENRE:{unescape(unquote(tr_genre))}\n")
 
 				tr_path = urlparse(lib_tr[LOCATION])
+
 				final_path = os.path.abspath(os.path.join(tr_path.netloc, tr_path.path))
 				final_path = unquote(final_path) # urldecode step
-				final_path = os.path.splitdrive(final_path)[1][1:] # remove leading slash
+				# final_path = os.path.splitdrive(final_path)[1][1:] # remove leading slash
+
+				if args.replace:
+					oldpath, newpath = args.replace
+					final_path = final_path.replace(oldpath, newpath)
 
 				if make_relative:
 					final_path = os.path.relpath(final_path, out_dir)
@@ -101,6 +108,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Extract iTunes playlists from an exported Library.xml to individual M3U files")
 	parser.add_argument("-i", "--input", metavar="input", type=argparse.FileType("rb"), required=True, help="Library.xml file")
 	parser.add_argument("-r", "--relative", action="store_true", help="Makes audio file paths relative")
+	parser.add_argument("-R", "--replace", nargs=2, metavar=("oldpath", "newpath"), help="Replace playlist file paths")
 	parser.add_argument("out", type=str, default="./", help="output folder")
 	args = parser.parse_args()
 	main(args.input, os.path.expanduser(args.out), make_relative=args.relative)
