@@ -8,6 +8,7 @@ import math
 import re
 import argparse
 import plistlib
+import unicodedata as ud
 from urllib.parse import unquote, urlparse
 from html import unescape
 
@@ -21,6 +22,9 @@ def join(sep, *args):
 	args = [str(s) for s in list(args) if s is not None]
 	return sep.join(args)
 
+def normalize(s: str) -> str:
+	return ud.normalize("NFC", s)
+
 def main(input_file, out_dir, make_relative=False):
 	# this list is entirely arbitrary. add your own here if you want
 	ignored_playlists = [
@@ -30,6 +34,7 @@ def main(input_file, out_dir, make_relative=False):
 		"All Playlists",
 		"Alfred Playlist",
 		"Albums without Artwork",
+		"Orphaned Tracks",
 	]
 
 	# plist vars. do not touch
@@ -56,7 +61,7 @@ def main(input_file, out_dir, make_relative=False):
 		if pl_name in ignored_playlists:
 			continue
 
-		new_fname = os.path.join(out_dir, get_valid_filename(f"{pl_name}.m3u8"))
+		new_fname = os.path.join(out_dir, normalize(get_valid_filename(f"{pl_name}.m3u8")))
 
 		with open(new_fname, "w", encoding="utf8") as f:
 			f.write("#EXTM3U")
@@ -97,6 +102,8 @@ def main(input_file, out_dir, make_relative=False):
 
 				if make_relative:
 					final_path = os.path.relpath(final_path, out_dir)
+
+				final_path = normalize(final_path)
 
 				f.write(f"{final_path}")
 
